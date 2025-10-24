@@ -1,3 +1,6 @@
+# Import protobuf fix first
+import protobuf_fix
+
 from flask import Flask, render_template, jsonify, request
 import threading
 import time
