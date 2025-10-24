@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: free-fire-bot
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python web_app.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: FF_UID
+        value: 4207697700
+      - key: FF_PASSWORD
+        value: E71FE984531619DC92F7539E95337690A3A8FF8D5055820C01F9A363F22B0489

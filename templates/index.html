@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Fire Bot Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #007bff;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .status-value {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        
+        .status-running {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-stopped {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-connected {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(45deg, #28a745, #1e7e34);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(45deg, #ffc107, #e0a800);
+            color: #212529;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Free Fire Bot</h1>
+            <p>Control your Free Fire bot remotely</p>
+        </div>
+        
+        <div class="status-card">
+            <h3 style="margin-bottom: 20px; color: #333;">Bot Status</h3>
+            <div class="status-item">
+                <span class="status-label">Status:</span>
+                <span id="status" class="status-value status-stopped">Stopped</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Connection:</span>
+                <span id="connection" class="status-value status-disconnected">Disconnected</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Last Activity:</span>
+                <span id="lastActivity">Never</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn" class="btn btn-success">Start Bot</button>
+            <button id="stopBtn" class="btn btn-danger">Stop Bot</button>
+            <button id="restartBtn" class="btn btn-warning">Restart Bot</button>
+            <button id="refreshBtn" class="btn btn-primary">Refresh Status</button>
+        </div>
+        
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+    </div>
+
+    <script>
+        let refreshInterval;
+        
+        // DOM elements
+        const statusEl = document.getElementById('status');
+        const connectionEl = document.getElementById('connection');
+        const lastActivityEl = document.getElementById('lastActivity');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        
+        // Update status display
+        function updateStatus(data) {
+            statusEl.textContent = data.running ? 'Running' : 'Stopped';
+            statusEl.className = `status-value ${data.running ? 'status-running' : 'status-stopped'}`;
+            
+            connectionEl.textContent = data.connected ? 'Connected' : 'Disconnected';
+            connectionEl.className = `status-value ${data.connected ? 'status-connected' : 'status-disconnected'}`;
+            
+            if (data.last_activity) {
+                const date = new Date(data.last_activity * 1000);
+                lastActivityEl.textContent = date.toLocaleString();
+            } else {
+                lastActivityEl.textContent = 'Never';
+            }
+            
+            // Update button states
+            startBtn.disabled = data.running;
+            stopBtn.disabled = !data.running;
+            restartBtn.disabled = false;
+        }
+        
+        // Show message
+        function showMessage(message, isError = false) {
+            const messageEl = isError ? errorMessage : successMessage;
+            const otherEl = isError ? successMessage : errorMessage;
+            
+            otherEl.style.display = 'none';
+            messageEl.textContent = message;
+            messageEl.style.display = 'block';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Fetch status
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                updateStatus(data);
+                
+                if (data.error) {
+                    showMessage(`Error: ${data.error}`, true);
+                }
+            } catch (error) {
+                console.error('Failed to fetch status:', error);
+                showMessage('Failed to fetch status', true);
+            }
+        }
+        
+        // Start bot
+        async function startBot() {
+            startBtn.innerHTML = '<span class="loading"></span> Starting...';
+            startBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/start', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage(data.message);
+                    fetchStatus();
+                } else {
+                    showMessage(data.message, true);
+                }
+            } catch (error) {
+                showMessage('Failed to start bot', true);
+            } finally {
+                startBtn.innerHTML = 'Start Bot';
+                startBtn.disabled = false;
+            }
+        }
+        
+        // Stop bot
+        async function stopBot() {
+            stopBtn.innerHTML = '<span class="loading"></span> Stopping...';
+            stopBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/stop', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage(data.message);
+                    fetchStatus();
+                } else {
+                    showMessage(data.message, true);
+                }
+            } catch (error) {
+                showMessage('Failed to stop bot', true);
+            } finally {
+                stopBtn.innerHTML = 'Stop Bot';
+                stopBtn.disabled = false;
+            }
+        }
+        
+        // Restart bot
+        async function restartBot() {
+            restartBtn.innerHTML = '<span class="loading"></span> Restarting...';
+            restartBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/restart', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage(data.message);
+                    fetchStatus();
+                } else {
+                    showMessage(data.message, true);
+                }
+            } catch (error) {
+                showMessage('Failed to restart bot', true);
+            } finally {
+                restartBtn.innerHTML = 'Restart Bot';
+                restartBtn.disabled = false;
+            }
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startBot);
+        stopBtn.addEventListener('click', stopBot);
+        restartBtn.addEventListener('click', restartBot);
+        refreshBtn.addEventListener('click', fetchStatus);
+        
+        // Initial load and auto-refresh
+        fetchStatus();
+        refreshInterval = setInterval(fetchStatus, 5000); // Refresh every 5 seconds
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+    </script>
+</body>
+</html>
